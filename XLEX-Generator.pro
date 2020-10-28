@@ -18,12 +18,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
+    subsetconstruction.cpp \
     thompson.cpp
 
 HEADERS += \
     mainwindow.h \
     node.h \
-    subsetDFA.h \
+    subsetconstruction.h \
     thompson.h
 
 FORMS += \
