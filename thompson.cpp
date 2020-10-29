@@ -9,34 +9,8 @@ Graph toNFAGraph(Cell nfa)
 {
     Graph NFAGraph = Graph(nfa.endState.stateName);
 
-    NFAGraph.start = nfa.startState.stateName;
+    NFAGraph.startStateList.append(nfa.startState.stateName);
     NFAGraph.endStateList.append(nfa.endState.stateName);
-
-//    for(int i=0; i<=NFAGraph.vertexNum; i++)
-//    {
-//        for(int j=0; j<=NFAGraph.vertexNum; j++)
-//        {
-//            NFAGraph.edges[i][j] = '$';    //代表无连接
-//        }
-//    }
-
-    //读取所有边*待优化*
-//    for(int i=1; i<=vertexCount; i++)
-//    {
-//        for(int j=1; j<=vertexCount; j++)
-//        {
-//            for(int k=0; k<edgeCount; k++)
-//            {
-//                if(nfa.edgeSet[k].startState.stateName == i && nfa.edgeSet[k].endState.stateName == j)
-//                {
-//                    QChar trans = nfa.edgeSet[k].transSymbol;
-//                    graph.edges[i][j] = trans;
-//                    if(!graph.transSymbolList.contains(trans) && trans!='#')
-//                        graph.transSymbolList.append(trans);
-//                }
-//            }
-//        }
-//    }
 
     //构建nfa图结构
     for(int i=0; i<nfa.edgeCount; i++)
@@ -47,7 +21,7 @@ Graph toNFAGraph(Cell nfa)
 
         NFAGraph.edges[start][end] = transSymbl;
 
-        if(!NFAGraph.transSymbolList.contains(transSymbl) && transSymbl != "ε")
+        if(!NFAGraph.transSymbolList.contains(transSymbl))
             NFAGraph.transSymbolList.append(transSymbl);
     }
 
@@ -88,6 +62,7 @@ Cell postfixExpressToNFA(QString postfixExpression)
     }   //end for
 
     cell = cellStack.pop();
+    STATE_NUM = 1;
     return cell;
 }
 

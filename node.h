@@ -34,10 +34,10 @@ struct Graph
 {
     QString edges[MAX][MAX]; //保存边的转换符
     int vertexNum; //顶点数量
-    int start;  //图的开始位置
+    QList<int> startStateList;  //初态集合
     QList<int> endStateList;    //dfa的终态集合
-    QList<QString> transSymbolList;   //不含ε的转换符列表
-    QMap<int, QList<int>> map;  //状态名像集合的映射，A -> {1, 2, 3}
+    QList<QString> transSymbolList;   //转换符列表
+    QMap<int, QList<int>> map;  //状态名向集合的映射，A -> {1, 2, 3}
 
     Graph()
     {

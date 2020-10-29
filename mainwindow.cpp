@@ -16,105 +16,110 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+/* 得到转换符列表 */
 QStringList MainWindow::getTitle(Graph FA, QString FAName)
 {
     QList<QString> list = FA.transSymbolList;
     list.sort();
 
-    if(FAName == "NFA")
+    if(FAName == "DFA")
     {
-        list.append("ε");
+        list.insert(0, "DFA状态");
+        list.insert(0, "NFA状态");
+        return list;
     }
 
+    list.insert(0, "状态");
     return list;
 }
 
-
-void MainWindow::createTable(Graph FA, QStringList titleList, QString windowTitle)
+/* 创建状态转换表 */
+void MainWindow::createTable(Graph FA, QStringList titleList, QString graphName)
 {
-    int rowCount = FA.vertexNum; //获取节点数，即行数
-
-
-    /* 创建表格视图*/
+    /* 创建表格视图 */
+    QFont font;
+    font.setBold(true);
     QTableView *tableView = new QTableView;
     tableView->resize(this->width(), this->height());
-    tableView->setWindowTitle(windowTitle.append("状态转换表"));
-
-    /* 创建数据模型 */
-    QStandardItemModel* model = new QStandardItemModel();
-
-    /* 设置表格标题行 */
-    model->setHorizontalHeaderLabels(titleList);
-
-    /* 自适应所有列，让它布满空间 */
+    tableView->setWindowTitle(graphName+"状态转换表");
+    tableView->verticalHeader()->hide();
+    tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    tableView->horizontalHeader()->setStyleSheet("QHeaderView::section{background:rgb(240, 240, 240);}");
+    tableView->horizontalHeader()->setFont(font);
     tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-    int colCount = titleList.length();
+    QStandardItemModel* model = new QStandardItemModel();   //创建数据模型
+    model->setHorizontalHeaderLabels(titleList);    //设置表格标题行
 
+    /* 填充表格内容 */
+    int rowCount = FA.vertexNum; //获取节点数，即行数
     for (int i = 1; i <= rowCount; i++)
     {
-        for(int j = 1; j <= rowCount; j++)
+        for(auto title : titleList)
         {
-            for(auto title : titleList)
+            QString item = "";
+            for(int j = 1; j <= rowCount; j++)
             {
                 if(FA.edges[i][j] == title)
                 {
-                    model->setItem(i-1, titleList.indexOf(title), new QStandardItem(QString::number(j)));
+                    item = (item.isEmpty()) ? QString::number(j) : (item + ", " + QString::number(j));
                 }
-                else if(FA.edges[i][j] == '#')
-                {
-                    model->setItem(i-1, titleList.indexOf("ε"), new QStandardItem(QString::number(j)));
-                }
-                else
-                {
-
-                }
-                model->setItem(i, j, new QStandardItem(QString("Φ")));
-                model->item(i, j)->setTextAlignment(Qt::AlignCenter);
             }
+
+            if(item.isEmpty())
+            {
+                model->setItem(i-1, titleList.indexOf(title), new QStandardItem(QString("Φ")));
+            }
+            else
+            {
+                model->setItem(i-1, titleList.indexOf(title), new QStandardItem(item));
+            }
+            model->item(i-1, titleList.indexOf(title))->setTextAlignment(Qt::AlignCenter);
+
         }
     }
 
-//    for(int i=1; i <= rowCount; i++)
-//    {
-//        for(int j=1; j <= rowCount; j++)
-//        {
-//            QString transSymbol = FA.edges[i][j];  //得到当前边的转换符
-//            //int row = cell.edgeSet[i].startState.stateName; //当前边开始状态的名字，即表格中的"行号+1"
-//            //转换符在表格中的列号
-//            int col = transSymbol == "#" ? titleList.indexOf("ε") : titleList.indexOf(transSymbol);
-//            QString item = model->item(i-1, col)->text(); //得到表格中的值
-//            if(item == "Φ")
-//            {
+    /* 第一列状态属性填写 */
+    for(int i=0; i<rowCount; i++)
+    {
+        model->setItem(i, 0, new QStandardItem(QString::number(i+1)));
+        model->item(i, 0)->setTextAlignment(Qt::AlignCenter);
+    }
 
-//                //item = QString::number(cell.edgeSet[i].endState.stateName); //原本为空直接添加
-//                item = QString::number(j);
-//            }
-//            else
-//            {
-//                //item = item + ", " + QString::number(cell.edgeSet[i].endState.stateName);   //多个状态拼接
-//                item = item + ", " + QString::number(j);
-//            }
+    /* DFA填写前两列 */
+    if(graphName == "DFA")
+    {
+        for(int i=0; i<rowCount; i++)
+        {
+            QString setStr = "";
+            setStr.append("{ ");
+            for(auto value: FA.map[i+1])
+            {
+                setStr = setStr + QString::number(value) + ", ";
+            }
+            setStr.replace(setStr.length()-2, setStr.length()-2, " }");
+            model->setItem(i, 0, new QStandardItem(setStr));
+            model->item(i, 0)->setTextAlignment(Qt::AlignCenter);
 
-//            model->setItem(row-1, col, new QStandardItem(item));
-//            model->item(row-1, col)->setTextAlignment(Qt::AlignCenter);
-//        }
-//    }
+            model->setItem(i, 1, new QStandardItem(QString::number(i+1)));
+            model->item(i, 1)->setTextAlignment(Qt::AlignCenter);
+        }
+    }
 
-    /* 设置表格视图数据 */
+    /* 设置表格视图数据并展示 */
     tableView->setModel(model);
-
-    /* 显示 */
     tableView->show();
 }
 
 
 void MainWindow::on_confirmBtn_clicked()
 {
-    QString re = "a|b";
+    QString re = "(a|c)*b";
     Graph NFA = toNFAGraph(postfixExpressToNFA(postfix(addJoinSymbol(re))));
-    QStringList nfaTitleList = getTitle(re, "NFA");
+    Graph DFA = toDFA(NFA);
+    QStringList nfaTitleList = getTitle(NFA, "NFA");
+    QStringList dfaTitleList = getTitle(DFA, "DFA");
 
-    //createTable(NFA, nfaTitleList);
-
+    createTable(NFA, nfaTitleList, "NFA");
+    createTable(DFA, dfaTitleList, "DFA");
 }

@@ -38,7 +38,7 @@ QList<int> doMove(QList<int> list, QChar transSymbol, Graph nfa)
     {
         for(int col=1; col<=nfa.vertexNum; col++)
         {
-            if(nfa.edges[row][col] == transSymbol && !list.contains(col))
+            if(nfa.edges[row][col] == transSymbol && !moveList.contains(col))
                 moveList.append(col);
         }
     }
@@ -46,40 +46,51 @@ QList<int> doMove(QList<int> list, QChar transSymbol, Graph nfa)
 }
 
 /* 将NFA确定化为DFA */
-Graph definite(Graph NFA)
+Graph toDFA(Graph NFA)
 {
-    Graph DFA = Graph();
+    Graph DFA = Graph(NFA.vertexNum);
 
-    QList<int> startList;
-    startList.append(NFA.start);    //从开始状态开始做ε闭包操作
+    /* 获取转换符集合 */
+    QList<QString> nfaTransSymbolList = NFA.transSymbolList;
+    nfaTransSymbolList.removeOne("ε");
+    QList<QString> dfaTransSymbolList = nfaTransSymbolList;
 
-    QList<QString> transSymbolList = NFA.transSymbolList;
-    QList<int> startClosure = closure(startList, NFA);  //得到开始状态的ε闭包
-    int stateName = 1;  //DFA的状态名
     int endState = NFA.endStateList[0]; //拿到终态
+
+    /* 获取初态的ε闭包 */
+    QList<QList<int>> closureList;  //存储产生的ε闭包
+    QList<int> startClosure = closure(NFA.startStateList, NFA);  //得到开始状态的ε闭包
+    closureList.append(startClosure);
 
     QQueue<QList<int>> queue;
     queue.append(startClosure);
 
+    int stateName = 1;  //DFA的状态名
     QMap<int, QList<int>> map;
     map.insert(stateName++, startClosure);
+    DFA.startStateList.append(stateName-1);
 
     while(!queue.empty())
     {
           QList<int> list = queue.dequeue();
 
-          for(auto transSymbol : transSymbolList)
+          for(auto transSymbol : dfaTransSymbolList)
           {
               QList<int> newList = closure(doMove(list, transSymbol[0], NFA), NFA);
               if(!newList.isEmpty())
               {
-                  if(!listIsSame(list, newList))  //产生了新状态
+                  if(!containList(newList, closureList))  //产生了新状态
                   {
                       queue.append(newList);
                       map.insert(stateName++, newList);
+                      closureList.append(newList);
                       if(newList.contains(endState))    //终态
                       {
                           DFA.endStateList.append(stateName-1);
+                      }
+                      else
+                      {
+                          DFA.startStateList.append(stateName-1);
                       }
                   }
                   DFA.edges[getKey(map, list)][getKey(map, newList)] = transSymbol;
@@ -88,14 +99,27 @@ Graph definite(Graph NFA)
     }
 
     DFA.vertexNum = stateName - 1;
-    DFA.start = 1;
     DFA.map = map;
+    DFA.transSymbolList = dfaTransSymbolList;
 
     return DFA;
 }
 
+/* 列表是否在另一个列表中 */
+bool containList(QList<int> list, QList<QList<int>> llist)
+{
+    for(auto l: llist)
+    {
+        if(compareList(l, list))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 /* 两个列表是否相同 */
-bool listIsSame(QList<int> list1, QList<int> list2)
+bool compareList(QList<int> list1, QList<int> list2)
 {
     if(list1.length() != list2.length())
         return false;

@@ -5,6 +5,7 @@
 #include <QTableView>
 #include <QHeaderView>
 #include <QStandardItemModel>
+#include <QString>
 #include "node.h"
 
 
@@ -19,8 +20,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void createTable(Graph, QStringList, QString);
-    QStringList getTitle(Graph, QString);
+    void createTable(Graph, QStringList, QString);  //创建状态转换表
+    QStringList getTitle(Graph, QString);    //得到转换符列表并生成表格标题
 private slots:
     void on_confirmBtn_clicked();
 
