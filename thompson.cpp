@@ -1,19 +1,67 @@
 #include "thompson.h"
+#include <QStack>
 
 int STATE_NUM = 1;
 QChar symbolArray[] = {'(', ')', '*', '+', '|'};
 
+/* 将NFA单元转换为NFA图 */
+Graph toNFAGraph(Cell nfa)
+{
+    Graph NFAGraph = Graph(nfa.endState.stateName);
+
+    NFAGraph.start = nfa.startState.stateName;
+    NFAGraph.endStateList.append(nfa.endState.stateName);
+
+//    for(int i=0; i<=NFAGraph.vertexNum; i++)
+//    {
+//        for(int j=0; j<=NFAGraph.vertexNum; j++)
+//        {
+//            NFAGraph.edges[i][j] = '$';    //代表无连接
+//        }
+//    }
+
+    //读取所有边*待优化*
+//    for(int i=1; i<=vertexCount; i++)
+//    {
+//        for(int j=1; j<=vertexCount; j++)
+//        {
+//            for(int k=0; k<edgeCount; k++)
+//            {
+//                if(nfa.edgeSet[k].startState.stateName == i && nfa.edgeSet[k].endState.stateName == j)
+//                {
+//                    QChar trans = nfa.edgeSet[k].transSymbol;
+//                    graph.edges[i][j] = trans;
+//                    if(!graph.transSymbolList.contains(trans) && trans!='#')
+//                        graph.transSymbolList.append(trans);
+//                }
+//            }
+//        }
+//    }
+
+    //构建nfa图结构
+    for(int i=0; i<nfa.edgeCount; i++)
+    {
+        int start = nfa.edgeSet[i].startState.stateName;
+        int end = nfa.edgeSet[i].endState.stateName;
+        QString transSymbl = nfa.edgeSet[i].transSymbol;
+
+        NFAGraph.edges[start][end] = transSymbl;
+
+        if(!NFAGraph.transSymbolList.contains(transSymbl) && transSymbl != "ε")
+            NFAGraph.transSymbolList.append(transSymbl);
+    }
+
+    return NFAGraph;
+}
+
 /* 后缀表达式转为NFA */
 Cell postfixExpressToNFA(QString postfixExpression)
 {
-    int length = postfixExpression.length();
-    QChar element;
     Cell cell, left, right;
     QStack<Cell> cellStack;
 
-    for(int i=0; i<length; i++)
+    for(auto element : postfixExpression)
     {
-        element = postfixExpression.at(i);
         switch (element.unicode())
         {
         case '|':
@@ -57,19 +105,19 @@ Cell doUnite(Cell left, Cell right)
     //构建边
     edge1.startState = startState;
     edge1.endState = left.startState;
-    edge1.transSymbol = '#';
+    edge1.transSymbol = "ε";
 
     edge2.startState = startState;
     edge2.endState = right.startState;
-    edge2.transSymbol = '#';
+    edge2.transSymbol = "ε";
 
     edge3.startState = left.endState;
     edge3.endState = endState;
-    edge3.transSymbol = '#';
+    edge3.transSymbol = "ε";
 
     edge4.startState = right.endState;
     edge4.endState = endState;
-    edge4.transSymbol = '#';
+    edge4.transSymbol = "ε";
 
     //构建单元
     //先将left和right的edgeSet复制到newCell
@@ -99,7 +147,7 @@ Cell doJoin(Cell left, Cell right)
     //构建边
     newEdge.startState = left.endState;
     newEdge.endState = right.startState;
-    newEdge.transSymbol = '#';
+    newEdge.transSymbol = "ε";
 
     //先将left和right的edgeSet复制到newCell
     copyCellEdgeSet(newCell, left);
@@ -129,15 +177,15 @@ Cell doClosure(Cell cell, QChar op)
     //构建边
     edge1.startState = startState;
     edge1.endState = cell.startState;
-    edge1.transSymbol = '#';
+    edge1.transSymbol = "ε";
 
     edge2.startState = cell.endState;
     edge2.endState = cell.startState;
-    edge2.transSymbol = '#';
+    edge2.transSymbol = "ε";
 
     edge3.startState = cell.endState;
     edge3.endState = endState;
-    edge3.transSymbol = '#';
+    edge3.transSymbol = "ε";
 
     //构建单元
     //先将cell的edgeSet复制到newCell
@@ -154,7 +202,7 @@ Cell doClosure(Cell cell, QChar op)
         Edge edge4;
         edge4.startState = startState;
         edge4.endState = endState;
-        edge4.transSymbol = '#';
+        edge4.transSymbol = "ε";
         newCell.edgeSet[newCell.edgeCount++] = edge4;
     }
 
@@ -211,9 +259,7 @@ void copyCellEdgeSet(Cell& destination, Cell source)
 State newStateNode()
 {
     State newState;
-    newState.stateName = STATE_NUM;
-
-    STATE_NUM++;
+    newState.stateName = STATE_NUM++;
 
     return newState;
 }
@@ -221,17 +267,14 @@ State newStateNode()
 /*检测输入的正则表达式是否合法 */
 bool checkLegal(QString regularExpression)
 {
-    return checkCharacter(regularExpression) && checkParenthesis(regularExpression);
+    return checkCharacter(regularExpression) && checkParenthesis(regularExpression) && checkString(regularExpression);
 }
 
 /* 检查输入的字符是否合适 () * | a~z A~Z 1~9 合法返回true,非法返回false */
 bool checkCharacter(QString regularExpression)
 {
-    int length = regularExpression.length();
-
-    for(int i=0; i<length; i++)
+    for(auto check : regularExpression)
     {
-        QChar check = regularExpression.at(i);
         if(!check.isLetterOrNumber() && !inSymbolArray(check))
             return false;
     }
@@ -242,35 +285,60 @@ bool checkCharacter(QString regularExpression)
 /* 检查括号是否匹配 合法返回true 非法返回false */
 bool checkParenthesis(QString regularExpression)
 {
-    int length = regularExpression.length();
-    QStack<int> stack;
+    QStack<QChar> stack;
 
-    for(int i=0; i<length; i++)
+    for(auto ch : regularExpression)
     {
-        if(regularExpression.at(i) == '(')
-            stack.push(i);
-        else if(regularExpression.at(i) == ')')
+        if(ch == '(')
+        {
+            stack.push(ch);
+        }
+        else if(ch == ')')
         {
             if(stack.empty())
                 return false;
             else
                 stack.pop();
-        }   //end if
-    }   //end for
+        }
+    }
 
     if(!stack.empty())
         return false;
+
+    return true;
+}
+
+/* 检查串的样式是否合法 */
+bool checkString(QString re)
+{
+    if(re.isEmpty())
+        return false;
+    if(!re.at(0).isLetterOrNumber())
+        return false;
+    if(re.at(re.length()-1) == '|')
+        return false;
+    for(int i=1; i<re.length()-1; i++)
+    {
+        if(!re.at(i).isLetterOrNumber() && !re.at(i+1).isLetterOrNumber())
+        {
+
+            if(re.at(i+1) == '(')
+                continue;
+            if(re.at(i) == ')' && re.at(i+1) == ')')
+                continue;
+
+            return false;
+        }
+    }
     return true;
 }
 
 /* 判断是否在操作符数组中 */
 bool inSymbolArray(QChar check)
 {
-    int length = sizeof(symbolArray) / sizeof(symbolArray[0]);
-
-    for(int i=0; i<length; i++)
+    for(auto symbol : symbolArray)
     {
-        if(check == symbolArray[i])
+        if(check == symbol)
             return true;
     }
     return false;
@@ -282,6 +350,9 @@ QString addJoinSymbol(QString regularExpression)
     int length = regularExpression.length();
     QString newExpression = "";
     QChar first, second;
+
+    if(length == 1)
+        return regularExpression;
 
     for(int i=0; i<length-1; i++)
     {

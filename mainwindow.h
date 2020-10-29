@@ -5,6 +5,7 @@
 #include <QTableView>
 #include <QHeaderView>
 #include <QStandardItemModel>
+#include "node.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -18,8 +19,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void createTable(QString);
-    QStringList getTitle(QString);
+    void createTable(Graph, QStringList, QString);
+    QStringList getTitle(Graph, QString);
 private slots:
     void on_confirmBtn_clicked();
 
