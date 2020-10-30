@@ -68,7 +68,15 @@ Graph toDFA(Graph NFA)
     int stateName = 1;  //DFA的状态名
     QMap<int, QList<int>> map;
     map.insert(stateName++, startClosure);
-    DFA.startStateList.append(stateName-1);
+    if(startClosure.contains(endState))
+    {
+        DFA.endStateList.append(stateName-1);
+    }
+    else
+    {
+        DFA.startStateList.append(stateName-1);
+    }
+
 
     while(!queue.empty())
     {

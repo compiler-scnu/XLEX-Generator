@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "thompson.h"
 #include "subsetconstruction.h"
+#include "hopcroft.h"
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -28,6 +29,12 @@ QStringList MainWindow::getTitle(Graph FA, QString FAName)
         list.insert(0, "NFA状态");
         return list;
     }
+    if(FAName == "minimizeDFA")
+    {
+        list.insert(0, "最小化DFA状态");
+        list.insert(0, "DFA状态");
+        return list;
+    }
 
     list.insert(0, "状态");
     return list;
@@ -42,6 +49,8 @@ void MainWindow::createTable(Graph FA, QStringList titleList, QString graphName)
     QTableView *tableView = new QTableView;
     tableView->resize(this->width(), this->height());
     tableView->setWindowTitle(graphName+"状态转换表");
+    if(graphName == "minimizeDFA")
+        tableView->setWindowTitle("最小化DFA状态转换表");
     tableView->verticalHeader()->hide();
     tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     tableView->horizontalHeader()->setStyleSheet("QHeaderView::section{background:rgb(240, 240, 240);}");
@@ -87,7 +96,7 @@ void MainWindow::createTable(Graph FA, QStringList titleList, QString graphName)
     }
 
     /* DFA填写前两列 */
-    if(graphName == "DFA")
+    if(graphName == "DFA" || graphName == "minimizeDFA")
     {
         for(int i=0; i<rowCount; i++)
         {
@@ -114,12 +123,15 @@ void MainWindow::createTable(Graph FA, QStringList titleList, QString graphName)
 
 void MainWindow::on_confirmBtn_clicked()
 {
-    QString re = "(a|c)*b";
+    QString re = "(a|b)*c";
     Graph NFA = toNFAGraph(postfixExpressToNFA(postfix(addJoinSymbol(re))));
     Graph DFA = toDFA(NFA);
+    Graph minimizeDFA = toMinimizeDFA(DFA);
     QStringList nfaTitleList = getTitle(NFA, "NFA");
     QStringList dfaTitleList = getTitle(DFA, "DFA");
+    QStringList minimizeDFATitleList = getTitle(minimizeDFA, "minimizeDFA");
 
     createTable(NFA, nfaTitleList, "NFA");
     createTable(DFA, dfaTitleList, "DFA");
+    createTable(minimizeDFA, minimizeDFATitleList, "minimizeDFA");
 }
