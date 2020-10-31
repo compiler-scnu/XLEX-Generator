@@ -1,4 +1,4 @@
-#include "subsetconstruction.h"
+#include "DFA.h"
 #include <QQueue>
 
 /* 经过ε转换可得到的集合 */
@@ -16,7 +16,7 @@ QList<int> closure(QList<int> list, Graph nfa)
             int row = queue.dequeue();
             for(int col=1; col<=nfa.vertexNum; col++)
             {
-                if(nfa.edges[row][col] == "ε" && !closureList.contains(col))
+                if(nfa.edges[row][col].contains("ε") && !closureList.contains(col))
                 {
                     closureList.append(col);
                     if(row != col)
@@ -38,7 +38,7 @@ QList<int> doMove(QList<int> list, QChar transSymbol, Graph nfa)
     {
         for(int col=1; col<=nfa.vertexNum; col++)
         {
-            if(nfa.edges[row][col] == transSymbol && !moveList.contains(col))
+            if(nfa.edges[row][col].contains(transSymbol) && !moveList.contains(col))
                 moveList.append(col);
         }
     }
@@ -101,7 +101,7 @@ Graph toDFA(Graph NFA)
                           DFA.startStateList.append(stateName-1);
                       }
                   }
-                  DFA.edges[getKey(map, list)][getKey(map, newList)] = transSymbol;
+                  DFA.edges[getKey(map, list)][getKey(map, newList)].append(transSymbol);
               }
           }
     }

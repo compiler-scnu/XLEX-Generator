@@ -1,4 +1,4 @@
-#include "thompson.h"
+#include "NFA.h"
 #include <QStack>
 
 int STATE_NUM = 1;
@@ -19,7 +19,7 @@ Graph toNFAGraph(Cell nfa)
         int end = nfa.edgeSet[i].endState.stateName;
         QString transSymbl = nfa.edgeSet[i].transSymbol;
 
-        NFAGraph.edges[start][end] = transSymbl;
+        NFAGraph.edges[start][end].append(transSymbl);
 
         if(!NFAGraph.transSymbolList.contains(transSymbl))
             NFAGraph.transSymbolList.append(transSymbl);

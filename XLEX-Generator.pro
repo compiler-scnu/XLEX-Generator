@@ -16,18 +16,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    hopcroft.cpp \
+    DFA.cpp \
+    NFA.cpp \
     main.cpp \
     mainwindow.cpp \
-    subsetconstruction.cpp \
-    thompson.cpp
+    minimizeDFA.cpp
 
 HEADERS += \
-    hopcroft.h \
+    DFA.h \
+    NFA.h \
     mainwindow.h \
-    node.h \
-    subsetconstruction.h \
-    thompson.h
+    minimizeDFA.h \
+    node.h
 
 FORMS += \
     mainwindow.ui

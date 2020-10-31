@@ -1,13 +1,17 @@
 #include <QQueue>
-#include "hopcroft.h"
-#include "subsetconstruction.h"
+#include "minimizeDFA.h"
+#include "DFA.h"
 #include<QDebug>
 
-/* 得到最小化DFA */
 Graph toMinimizeDFA(Graph DFA)
 {
-    //Graph minimizeDFA = Graph(DFA.vertexNum);
+    Graph newDFA = createNewDFA(DFA);
+}
 
+
+/* 得到最小化DFA */
+Graph createNewDFA(Graph DFA)
+{
     QList<int> terminalStates = DFA.startStateList;   //接收态组  {1, 2, 3}
     QList<int> nonTerminalStates = DFA.endStateList;  //非接收态组 {4}
 
@@ -17,20 +21,30 @@ Graph toMinimizeDFA(Graph DFA)
     QList<QString> transSymbolList = DFA.transSymbolList;//状态列表
     QMap<int, QList<int>> map;
 
+    QList<int> newStartStateList;
+    QList<int> newEndStateList;
+
     //构建map
     int key = 1;
-    for(int i=0; i<startGroup.length(); i++)
+    for(auto startList: startGroup)
     {
-        if(!startGroup[i].empty())
-            map[key++] = startGroup[i];
+        if(!startList.empty())
+        {
+            newStartStateList.append(key);
+            map[key++] = startList;
+        }
     }
-    for(int i=0; i<endGroup.length(); i++)
+    for(auto endList: endGroup)
     {
-        if(!endGroup[i].empty())
-            map[key++] = endGroup[i];
+        if(!endList.empty())
+        {
+            newEndStateList.append(key);
+            map[key++] = endList;
+        }
     }
 
     Graph minimizeDFA = Graph(key-1);
+    //minimizeDFA.startStateList =
 
     //接受态遍历
     if(!startGroup[0].empty())
@@ -42,7 +56,7 @@ Graph toMinimizeDFA(Graph DFA)
                 int start = startGroup[i][0];//取接受态列表第一个为新名称
                 for(int j=1;j<=DFA.vertexNum;j++)//去原DFA图中遍历节点
                 {
-                    if(DFA.edges[start][j]==transSymbol)//找到转换符对应的终点
+                    if(DFA.edges[start][j].contains(transSymbol))//找到转换符对应的终点
                     {
                         for(auto list:startGroup)//在接受态组中找到终点对应的新列表
                         {
@@ -50,14 +64,15 @@ Graph toMinimizeDFA(Graph DFA)
                             {
                                 //getKey(map, startGroup[i]);  startState对应的名字
                                 //getKey(map, list);  endState对应的名字
-                                minimizeDFA.edges[getKey(map, startGroup[i])][getKey(map, list)] = transSymbol;
+                                minimizeDFA.edges[getKey(map, startGroup[i])][getKey(map, list)].append(transSymbol);
+
                             }
                         }
                         for(auto list:endGroup)//在非接受态组中找到终点对应的新列表
                         {
                             if(list.contains(j))
                             {
-                                minimizeDFA.edges[getKey(map, startGroup[i])][getKey(map, list)] = transSymbol;
+                                minimizeDFA.edges[getKey(map, startGroup[i])][getKey(map, list)].append(transSymbol);
                             }
                         }
                     }
@@ -76,7 +91,7 @@ Graph toMinimizeDFA(Graph DFA)
                 int start = endGroup[i][0];//取非接受态列表第一个为新名称
                 for(int j=1;j<=DFA.vertexNum;j++)//去原DFA图中遍历节点
                 {
-                    if(DFA.edges[start][j]==transSymbol)//找到转换符对应的终点
+                    if(DFA.edges[start][j].contains(transSymbol))//找到转换符对应的终点
                     {
                         for(auto list:startGroup)//在接受态组中找到终点对应的新列表
                         {
@@ -84,14 +99,14 @@ Graph toMinimizeDFA(Graph DFA)
                             {
                                 //getKey(map, startGroup[i]);  startState对应的名字
                                 //getKey(map, list);  endState对应的名字
-                                minimizeDFA.edges[getKey(map, endGroup[i])][getKey(map, list)] = transSymbol;
+                                minimizeDFA.edges[getKey(map, endGroup[i])][getKey(map, list)].append(transSymbol);
                             }
                         }
                         for(auto list:endGroup)//在非接受态组中找到终点对应的新列表
                         {
                             if(list.contains(j))
                             {
-                                minimizeDFA.edges[getKey(map, endGroup[i])][getKey(map, list)] = transSymbol;
+                                minimizeDFA.edges[getKey(map, endGroup[i])][getKey(map, list)].append(transSymbol);
                             }
                         }
                     }
@@ -100,7 +115,6 @@ Graph toMinimizeDFA(Graph DFA)
         }
     }
 
-    //非接受态遍历*同上*
     minimizeDFA.map = map;
     minimizeDFA.transSymbolList = transSymbolList;
 
@@ -114,7 +128,8 @@ Graph toMinimizeDFA(Graph DFA)
  *   2        1   4   5
  *   3        2   3   4     ->  {1, 3}, {2}, {4} -> {1, 3}, {2, 4}
  *   4        3   4   5
- * return [[2, 3, 4], [1, 4, 5], [3, 4, 5]] ,两个相同的列表即为同一个状态, 但两个不同的列表不一定是两个状态，也有可能是同一个状态
+ * return [[2, 3, 4], [1, 4, 5], [3, 4, 5]]
+ * 两个相同的列表即为同一个状态, 但两个不同的列表不一定是两个状态，也有可能是同一个状态
  * return [[2, 3, 4], [1, 4, 5]] 
  */
 QList<QList<int>> transform(QList<int> stateList, Graph DFA)
@@ -130,12 +145,13 @@ QList<QList<int>> transform(QList<int> stateList, Graph DFA)
             bool flag = true;
             for(int i=1; i<=DFA.vertexNum; i++)
             {
-                if(DFA.edges[state][i] == transSymbol)
+                if(DFA.edges[state][i].contains(transSymbol))
                 {
                     transList.append(i);
                     flag = false;
                 }
             }
+
             if(flag)
             {
                 transList.append(0);
@@ -143,7 +159,7 @@ QList<QList<int>> transform(QList<int> stateList, Graph DFA)
         }
         transMatrix.append(transList);
     }
-
+    qDebug()<<transMatrix;
     return transMatrix;
 }
 
@@ -160,12 +176,12 @@ QList<QList<int>> splitStateList(QList<int> stateList, Graph DFA)
 
     QList<QList<int>> transMatrix = transform(stateList, DFA);   //转换后的状态列表
 
-    QList<int> numList;
+    QList<int> numList; //去重作用
 
     for(int i=0; i<transMatrix.length(); i++)
     {
-        QList<int> groupList;   //存放同一个组的状态
-
+        QList<int> groupList;   //存放属于同一个组的状态
+        bool flag = true;
         for(int j=i+1; j<transMatrix.length(); j++)
         {
             if(compareListSame(transMatrix[i], transMatrix[j]) && !numList.contains(j))
@@ -174,14 +190,37 @@ QList<QList<int>> splitStateList(QList<int> stateList, Graph DFA)
                     groupList.append(stateList[i]);
                 groupList.append(stateList[j]);
                 numList.append(j);
+                flag = false;
             }
+        }
+        if(flag)
+        {
+            groupList.append(stateList[i]);
         }
         if(!groupList.empty())
         {
-            splitMatrix.append(groupList);
+            splitMatrix.append(groupList);  //得到了属于同一个组的列表 {1, 3}, 剩下未分组的{2} {4}
         }
     }
-    return splitMatrix;
+
+    //合并{1, 3}为同一个点
+    for(auto list: splitMatrix)
+    {
+        if(list.length() != 1)
+        {
+            for(int i=0; i<list.length(); i++)  //{1, 3}
+            {
+                for(int j=1; j<=DFA.vertexNum; j++)
+                {
+                    DFA.edges[1][list[i]].append(DFA.edges[1][list[1]]);
+                    DFA.edges[2][list[i]].append(DFA.edges[2][list[1]]);
+                    DFA.edges[3][list[i]].append(DFA.edges[3][list[1]]);
+                }
+            }
+        }
+    }
+
+    return splitMatrix; //[{1, 3}, {2}, {4}]
 }
 
 bool compareListSame(QList<int> l1, QList<int> l2)

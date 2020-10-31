@@ -1,8 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "thompson.h"
-#include "subsetconstruction.h"
-#include "hopcroft.h"
+#include "NFA.h"
+#include "DFA.h"
+#include "minimizeDFA.h"
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -69,7 +69,7 @@ void MainWindow::createTable(Graph FA, QStringList titleList, QString graphName)
             QString item = "";
             for(int j = 1; j <= rowCount; j++)
             {
-                if(FA.edges[i][j] == title)
+                if(FA.edges[i][j].contains(title))
                 {
                     item = (item.isEmpty()) ? QString::number(j) : (item + ", " + QString::number(j));
                 }
@@ -120,18 +120,20 @@ void MainWindow::createTable(Graph FA, QStringList titleList, QString graphName)
     tableView->show();
 }
 
-
 void MainWindow::on_confirmBtn_clicked()
 {
-    QString re = "(a|b)*c";
+    QString re = "a|b";
     Graph NFA = toNFAGraph(postfixExpressToNFA(postfix(addJoinSymbol(re))));
+    qDebug()<<"11";
     Graph DFA = toDFA(NFA);
-    Graph minimizeDFA = toMinimizeDFA(DFA);
+    qDebug()<<"22";
+    //Graph minimizeDFA = toMinimizeDFA(DFA);
+    qDebug()<<"33";
     QStringList nfaTitleList = getTitle(NFA, "NFA");
     QStringList dfaTitleList = getTitle(DFA, "DFA");
-    QStringList minimizeDFATitleList = getTitle(minimizeDFA, "minimizeDFA");
+    //QStringList minimizeDFATitleList = getTitle(minimizeDFA, "minimizeDFA");
 
     createTable(NFA, nfaTitleList, "NFA");
     createTable(DFA, dfaTitleList, "DFA");
-    createTable(minimizeDFA, minimizeDFATitleList, "minimizeDFA");
+    //createTable(minimizeDFA, minimizeDFATitleList, "minimizeDFA");
 }

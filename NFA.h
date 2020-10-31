@@ -1,5 +1,5 @@
-#ifndef THOMPSON_H
-#define THOMPSON_H
+#ifndef NFA_H
+#define NFA_H
 
 #include "node.h"
 
@@ -27,4 +27,4 @@ Cell doCell(QChar);  //单词处理，a
 void copyCellEdgeSet(Cell&, Cell);  //将一个单元的边的集合复制到另一个单元
 State newStateNode();   //产生一个新的状态节点，便于管理
 
-#endif // THOMPSON_H
+#endif // NFA_H

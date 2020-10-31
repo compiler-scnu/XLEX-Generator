@@ -32,7 +32,8 @@ struct Cell
 /* 图 */
 struct Graph
 {
-    QString edges[MAX][MAX]; //保存边的转换符
+    QList<QString> edges[MAX][MAX]; //保存边的转换符  ----> QList<QString> edges[MAX][MAX]
+    //QList<QString> minimizeDFAEdges[MAX][MAX];  //两个点之间有个多个转换
     int vertexNum; //顶点数量
     QList<int> startStateList;  //初态集合
     QList<int> endStateList;    //dfa的终态集合
@@ -45,7 +46,7 @@ struct Graph
         {
             for(int j=0; j<MAX; j++)
             {
-                this->edges[i][j] = "Φ";
+                this->edges[i][j].append("Φ");
             }
         }
     }
@@ -57,7 +58,7 @@ struct Graph
         {
             for(int j=0; j<=vertexNum; j++)
             {
-                this->edges[i][j] = "Φ";
+                this->edges[i][j].append("Φ");
             }
         }
     }
