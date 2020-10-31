@@ -3,14 +3,8 @@
 #include "DFA.h"
 #include<QDebug>
 
-Graph toMinimizeDFA(Graph DFA)
-{
-    Graph newDFA = createNewDFA(DFA);
-}
-
-
 /* 得到最小化DFA */
-Graph createNewDFA(Graph DFA)
+Graph toMinimizeDFA(Graph DFA)
 {
     QList<int> terminalStates = DFA.startStateList;   //接收态组  {1, 2, 3}
     QList<int> nonTerminalStates = DFA.endStateList;  //非接收态组 {4}
@@ -130,6 +124,7 @@ Graph createNewDFA(Graph DFA)
  *   4        3   4   5
  * return [[2, 3, 4], [1, 4, 5], [3, 4, 5]]
  * 两个相同的列表即为同一个状态, 但两个不同的列表不一定是两个状态，也有可能是同一个状态
+ * 需要进行重写矩阵操作
  * return [[2, 3, 4], [1, 4, 5]] 
  */
 QList<QList<int>> transform(QList<int> stateList, Graph DFA)
@@ -159,7 +154,6 @@ QList<QList<int>> transform(QList<int> stateList, Graph DFA)
         }
         transMatrix.append(transList);
     }
-    qDebug()<<transMatrix;
     return transMatrix;
 }
 
@@ -174,53 +168,94 @@ QList<QList<int>> splitStateList(QList<int> stateList, Graph DFA)
         return splitMatrix;
     }
 
+    QQueue<QList<QList<int>>> queue;
     QList<QList<int>> transMatrix = transform(stateList, DFA);   //转换后的状态列表
+    queue.append(transMatrix);
 
     QList<int> numList; //去重作用
+    QList<int> stateListTemp = stateList; //状态列表副本
 
-    for(int i=0; i<transMatrix.length(); i++)
+    while(!queue.empty())
     {
-        QList<int> groupList;   //存放属于同一个组的状态
-        bool flag = true;
-        for(int j=i+1; j<transMatrix.length(); j++)
+        int length = splitMatrix.length();
+        QList<QList<int>> matrix = queue.dequeue();
+        QList<int> notGroupList;
+
+        for(int i=0; i<matrix.length(); i++)
         {
-            if(compareListSame(transMatrix[i], transMatrix[j]) && !numList.contains(j))
+            QList<int> groupList;   //存放属于同一个组的状态
+            for(int j=i+1; j<matrix.length(); j++)
             {
-                if(!groupList.contains(stateList[i]))
-                    groupList.append(stateList[i]);
-                groupList.append(stateList[j]);
-                numList.append(j);
-                flag = false;
+                if(!numList.contains(j) && compareListSame(matrix[i], matrix[j]))
+                {
+                    if(!groupList.contains(stateList[i]))
+                    {
+                        groupList.append(stateList[i]);
+                        stateListTemp[i] = 0;
+                    }
+                    groupList.append(stateList[j]);
+                    stateListTemp[j] = 0;
+                    numList.append(j);
+                }
+
+                if(isClosure(stateList[j], matrix[j]) && matrix[i].contains(stateList[j]) && !numList.contains(j))    //出现闭包情况 2 [0, 0, 2, 0]
+                {
+                    if(!groupList.contains(stateList[i]))
+                    {
+                        groupList.append(stateList[i]);
+                        stateListTemp[i] = 0;
+                    }
+                    groupList.append(stateList[j]);
+                    stateListTemp[j] = 0;
+                    numList.append(j);
+                }
+            }
+            if(!groupList.empty())
+            {
+                splitMatrix.append(groupList);  //得到了属于同一个组的列表 {1, 3}, 剩下未分组的{2} {4}
             }
         }
-        if(flag)
-        {
-            groupList.append(stateList[i]);
-        }
-        if(!groupList.empty())
-        {
-            splitMatrix.append(groupList);  //得到了属于同一个组的列表 {1, 3}, 剩下未分组的{2} {4}
-        }
-    }
 
-    //合并{1, 3}为同一个点
-    for(auto list: splitMatrix)
-    {
-        if(list.length() != 1)
+        for(int i=0; i<stateListTemp.length(); i++)
         {
-            for(int i=0; i<list.length(); i++)  //{1, 3}
+            if(stateListTemp[i] != 0)
+                notGroupList.append(stateListTemp[i]);
+        }
+
+        //判断是否继续分组
+        if(notGroupList.length() == 0)  //全部分好组
+        {
+            break;
+        }
+        if(length == splitMatrix.length())  //前后大小相等，没有新的分组产生,并且有单个为一组的状态
+        {
+            for(auto notGroupState: notGroupList)
             {
-                for(int j=1; j<=DFA.vertexNum; j++)
+                QList<int> l;
+                l.append(notGroupState);
+                splitMatrix.append(l);
+            }
+            break;
+        }
+
+        //重写矩阵
+        for(auto state: notGroupList)
+        {
+            for(auto list: splitMatrix)
+            {
+                for(int i=0; i<matrix[0].length(); i++)
                 {
-                    DFA.edges[1][list[i]].append(DFA.edges[1][list[1]]);
-                    DFA.edges[2][list[i]].append(DFA.edges[2][list[1]]);
-                    DFA.edges[3][list[i]].append(DFA.edges[3][list[1]]);
+                    if(list.contains(matrix[stateList.indexOf(state)][i]))
+                    {
+                        matrix[stateList.indexOf(state)][i] = list[0];
+                    }
                 }
             }
         }
+        queue.append(matrix);
     }
 
-    return splitMatrix; //[{1, 3}, {2}, {4}]
+    return splitMatrix;
 }
 
 bool compareListSame(QList<int> l1, QList<int> l2)
@@ -235,3 +270,19 @@ bool compareListSame(QList<int> l1, QList<int> l2)
     return true;
 }
 
+bool isClosure(int state, QList<int> list)
+{
+    int flag = false;
+    for(int i=0; i<list.length(); i++)
+    {
+        if(list[i] != 0 && list[i] != state)  //除index位置的数，其他位置出现非0，返回false
+        {
+            return false;
+        }
+        if(list[i] == state)
+            flag = true;
+    }
+    if(flag)
+        return true;
+    return false;
+}

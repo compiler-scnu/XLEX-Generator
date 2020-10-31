@@ -122,18 +122,15 @@ void MainWindow::createTable(Graph FA, QStringList titleList, QString graphName)
 
 void MainWindow::on_confirmBtn_clicked()
 {
-    QString re = "a|b";
+    QString re = "a*|b|c";
     Graph NFA = toNFAGraph(postfixExpressToNFA(postfix(addJoinSymbol(re))));
-    qDebug()<<"11";
     Graph DFA = toDFA(NFA);
-    qDebug()<<"22";
-    //Graph minimizeDFA = toMinimizeDFA(DFA);
-    qDebug()<<"33";
+    Graph minimizeDFA = toMinimizeDFA(DFA);
     QStringList nfaTitleList = getTitle(NFA, "NFA");
     QStringList dfaTitleList = getTitle(DFA, "DFA");
-    //QStringList minimizeDFATitleList = getTitle(minimizeDFA, "minimizeDFA");
+    QStringList minimizeDFATitleList = getTitle(minimizeDFA, "minimizeDFA");
 
     createTable(NFA, nfaTitleList, "NFA");
     createTable(DFA, dfaTitleList, "DFA");
-    //createTable(minimizeDFA, minimizeDFATitleList, "minimizeDFA");
+    createTable(minimizeDFA, minimizeDFATitleList, "minimizeDFA");
 }

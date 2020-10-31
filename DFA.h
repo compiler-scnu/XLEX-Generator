@@ -1,5 +1,5 @@
-#ifndef SUBSETCONSTRUCTION_H
-#define SUBSETCONSTRUCTION_H
+#ifndef DFA_H
+#define DFA_H
 /*
  * 子集构造法
  * 将NFA转为DFA
@@ -16,4 +16,4 @@ bool compareList(QList<int>, QList<int>);    //两个列表是否相同
 bool containList(QList<int>, QList<QList<int>>);    //列表是否在另一个列表中
 int getKey(QMap<int, QList<int>>, QList<int>);  //通过value找key
 
-#endif // SUBSETCONSTRUCTION_H
+#endif // DFA_H
