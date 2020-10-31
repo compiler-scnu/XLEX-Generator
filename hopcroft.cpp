@@ -3,6 +3,52 @@
 #include "subsetconstruction.h"
 #include<QDebug>
 
+
+QList<QString> getNodeCode(Graph graph,int a)//获取一个节点的代码,没有加\n，在out的时候每个字符串后面添加即可
+{
+    QList<QString> Lines;
+    QString Line;
+
+    Line=QString("Node%1()\n").arg(a);//这样加\n应该可以吧？不在out添加的话就在每个QString后添加
+    Lines.append(Line);
+    Lines.append("{");
+
+    QString l;//应为QList<QString>,需要更改结构
+    for(int i=1;i<=graph.vertexNum;i++)
+    {
+        if(graph.edges[a][i]!="空")//转换符不为空
+        //全部用if就可以了，不用else if
+        {
+            //if(l.length()==1) 等于1就下面
+            l=graph.edges[a][i];//这里拿的是转换符列表，不是一个转换符 后面改成对列表的循环
+            Line=QString("  if(ch==%1)").arg("l");//一个tab缩进
+            //不等于1就下面
+            //Line=QString("  if(ch==%1").arg("l[0]");
+            //Line=Line+QString("||ch=%1").arg("l[1]");
+
+            Lines.append(Line);
+            Line=QString("      get Node%1();").arg(i);//两个tab缩进
+            Lines.append(Line);
+        }
+    }
+    Line=QString("  return 0;");//一个tab缩进
+    Lines.append(Line);
+    Lines.append("}");
+}
+
+QList<QList<QString>> getCode(Graph graph)
+{
+    QList<QList<QString>> Codes;//所有代码
+    QList<QString> Code;//接受每个函数代码
+    for(int i=1;i<=graph.vertexNum;i++)
+    {
+        Code=getNodeCode(graph,i);
+        Codes.append(Code);
+    }
+    return Codes;
+}
+
+
 /* 得到最小化DFA */
 Graph toMinimizeDFA(Graph DFA)
 {
