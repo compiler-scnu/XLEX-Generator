@@ -2,6 +2,8 @@
 #define ERROR_H
 
 #include <QWidget>
+#include <QDesktopServices>
+#include <QUrl>
 
 namespace Ui {
 class error;
@@ -14,7 +16,7 @@ class error : public QWidget
 public:
     explicit error(QWidget *parent = nullptr);
     ~error();
-
+    Ui::error *getUI();
 private:
     Ui::error *ui;
 };
