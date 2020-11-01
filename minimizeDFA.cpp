@@ -1,59 +1,12 @@
 #include <QQueue>
 #include "minimizeDFA.h"
 #include "DFA.h"
-#include<QDebug>
-
-
-QList<QString> getNodeCode(Graph graph,int a)//获取一个节点的代码,没有加\n，在out的时候每个字符串后面添加即可
-{
-    QList<QString> Lines;
-    QString Line;
-
-    Line=QString("Node%1()\n").arg(a);//这样加\n应该可以吧？不在out添加的话就在每个QString后添加
-    Lines.append(Line);
-    Lines.append("{");
-
-    QString l;//应为QList<QString>,需要更改结构
-    for(int i=1;i<=graph.vertexNum;i++)
-    {
-        if(graph.edges[a][i]!="空")//转换符不为空
-        //全部用if就可以了，不用else if
-        {
-            //if(l.length()==1) 等于1就下面
-            l=graph.edges[a][i];//这里拿的是转换符列表，不是一个转换符 后面改成对列表的循环
-            Line=QString("  if(ch==%1)").arg("l");//一个tab缩进
-            //不等于1就下面
-            //Line=QString("  if(ch==%1").arg("l[0]");
-            //Line=Line+QString("||ch=%1").arg("l[1]");
-
-            Lines.append(Line);
-            Line=QString("      get Node%1();").arg(i);//两个tab缩进
-            Lines.append(Line);
-        }
-    }
-    Line=QString("  return 0;");//一个tab缩进
-    Lines.append(Line);
-    Lines.append("}");
-}
-
-QList<QList<QString>> getCode(Graph graph)
-{
-    QList<QList<QString>> Codes;//所有代码
-    QList<QString> Code;//接受每个函数代码
-    for(int i=1;i<=graph.vertexNum;i++)
-    {
-        Code=getNodeCode(graph,i);
-        Codes.append(Code);
-    }
-    return Codes;
-}
-
 
 /* 得到最小化DFA */
 Graph toMinimizeDFA(Graph DFA)
 {
-    QList<int> terminalStates = DFA.startStateList;   //接收态组  {1, 2, 3}
-    QList<int> nonTerminalStates = DFA.endStateList;  //非接收态组 {4}
+    QList<int> terminalStates = DFA.startStateList;   //接收态组
+    QList<int> nonTerminalStates = DFA.endStateList;  //非接收态组
 
     QList<QList<int>> startGroup = splitStateList(terminalStates, DFA); //分好组的接收态
     QList<QList<int>> endGroup = splitStateList(nonTerminalStates, DFA);    //分好组的非接收态
@@ -84,7 +37,6 @@ Graph toMinimizeDFA(Graph DFA)
     }
 
     Graph minimizeDFA = Graph(key-1);
-    //minimizeDFA.startStateList =
 
     //接受态遍历
     if(!startGroup[0].empty())
@@ -165,9 +117,9 @@ Graph toMinimizeDFA(Graph DFA)
  * {1, 2, 3}
  * DFA状态    a   b   c
  *   1        2   3   4
- *   2        1   4   5
+ *   2        3   4   5
  *   3        2   3   4     ->  {1, 3}, {2}, {4} -> {1, 3}, {2, 4}
- *   4        3   4   5
+ *   4        1   4   5
  * return [[2, 3, 4], [1, 4, 5], [3, 4, 5]]
  * 两个相同的列表即为同一个状态, 但两个不同的列表不一定是两个状态，也有可能是同一个状态
  * 需要进行重写矩阵操作
@@ -215,7 +167,7 @@ QList<QList<int>> splitStateList(QList<int> stateList, Graph DFA)
     }
 
     QQueue<QList<QList<int>>> queue;
-    QList<QList<int>> transMatrix = transform(stateList, DFA);   //转换后的状态列表
+    QList<QList<int>> transMatrix = transform(stateList, DFA);   //转换后的状态矩阵
     queue.append(transMatrix);
 
     QList<int> numList; //去重作用
@@ -244,17 +196,18 @@ QList<QList<int>> splitStateList(QList<int> stateList, Graph DFA)
                     numList.append(j);
                 }
 
-                if(isClosure(stateList[j], matrix[j]) && matrix[i].contains(stateList[j]) && !numList.contains(j))    //出现闭包情况 2 [0, 0, 2, 0]
-                {
-                    if(!groupList.contains(stateList[i]))
-                    {
-                        groupList.append(stateList[i]);
-                        stateListTemp[i] = 0;
-                    }
-                    groupList.append(stateList[j]);
-                    stateListTemp[j] = 0;
-                    numList.append(j);
-                }
+//                //出现闭包情况 2 [0, 0, 2, 0]
+//                if(isClosure(stateList[j], matrix[j]) && matrix[i].contains(stateList[j]) && !numList.contains(j))
+//                {
+//                    if(!groupList.contains(stateList[i]))
+//                    {
+//                        groupList.append(stateList[i]);
+//                        stateListTemp[i] = 0;
+//                    }
+//                    groupList.append(stateList[j]);
+//                    stateListTemp[j] = 0;
+//                    numList.append(j);
+//                }
             }
             if(!groupList.empty())
             {
