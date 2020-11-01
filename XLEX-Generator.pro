@@ -18,6 +18,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     DFA.cpp \
     NFA.cpp \
+    error.cpp \
+    generatingCode.cpp \
     main.cpp \
     mainwindow.cpp \
     minimizeDFA.cpp
@@ -25,11 +27,14 @@ SOURCES += \
 HEADERS += \
     DFA.h \
     NFA.h \
+    error.h \
+    generatingCode.h \
     mainwindow.h \
     minimizeDFA.h \
     node.h
 
 FORMS += \
+    error.ui \
     mainwindow.ui
 
 # Default rules for deployment.
