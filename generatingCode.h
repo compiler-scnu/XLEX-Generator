@@ -1,0 +1,4 @@
+#ifndef GENERATINGCODE_H
+#define GENERATINGCODE_H
+
+#endif // GENERATINGCODE_H
