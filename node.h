@@ -39,6 +39,8 @@ struct Graph
     QList<QString> transSymbolList;   //转换符列表
     QMap<int, QList<int>> map;  //状态名向集合的映射，A -> {1, 2, 3}
 
+    Graph() {}
+
     Graph(int vertexNum)
     {
         this->vertexNum = vertexNum;
