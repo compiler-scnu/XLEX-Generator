@@ -6,57 +6,128 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>921</width>
+    <height>640</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTextEdit" name="regularText">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>70</y>
-      <width>561</width>
-      <height>51</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="selectBtn">
-    <property name="geometry">
-     <rect>
-      <x>630</x>
-      <y>80</y>
-      <width>111</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>打开已有文件</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="confirmBtn">
-    <property name="geometry">
-     <rect>
-      <x>630</x>
-      <y>20</y>
-      <width>93</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>确定</string>
-    </property>
-   </widget>
+   <layout class="QGridLayout" name="gridLayout_4">
+    <item row="2" column="0">
+     <widget class="QTextBrowser" name="codeText"/>
+    </item>
+    <item row="0" column="0">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>80</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>80</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>在此处输入正则表达式</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QTextEdit" name="regularText">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="confirmBtn">
+         <property name="text">
+          <string>确定</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="openFileBtn">
+         <property name="text">
+          <string>打开已有文件</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QPushButton" name="saveRegularBtn">
+         <property name="text">
+          <string>保存正则表达式</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="title">
+       <string>功能选项</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <widget class="QPushButton" name="showNFABtn">
+         <property name="text">
+          <string>展示NFA</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="showDFABtn">
+         <property name="text">
+          <string>展示DFA</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="showMiniMizeDFABtn">
+         <property name="text">
+          <string>展示最小化DFA</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QPushButton" name="showCodeBtn">
+         <property name="text">
+          <string>生成代码</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="QPushButton" name="saveCodeBtn">
+         <property name="text">
+          <string>保存代码</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>921</width>
      <height>26</height>
     </rect>
    </property>

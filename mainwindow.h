@@ -25,7 +25,24 @@ public:
 private slots:
     void on_confirmBtn_clicked();
 
+    void on_showNFABtn_clicked();
+
+    void on_showDFABtn_clicked();
+
+    void on_showMiniMizeDFABtn_clicked();
+
+    void on_showCodeBtn_clicked();
+
+    void on_openFileBtn_clicked();
+
+    void on_saveRegularBtn_clicked();
+
+    void on_saveCodeBtn_clicked();
+
 private:
     Ui::MainWindow *ui;
+    Graph NFA;
+    Graph DFA;
+    Graph minimizeDFA;
 };
 #endif // MAINWINDOW_H

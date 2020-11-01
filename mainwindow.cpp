@@ -3,7 +3,13 @@
 #include "NFA.h"
 #include "DFA.h"
 #include "minimizeDFA.h"
-#include <QDebug>
+#include "generatingCode.h"
+#include <QErrorMessage>
+#include <QFileDialog>
+#include <QTextStream>
+#include <QMessageBox>
+#include "error.h"
+#include "ui_error.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -47,7 +53,7 @@ void MainWindow::createTable(Graph FA, QStringList titleList, QString graphName)
     QFont font;
     font.setBold(true);
     QTableView *tableView = new QTableView;
-    tableView->resize(this->width(), this->height());
+    tableView->resize(850, 500);
     tableView->setWindowTitle(graphName+"状态转换表");
     if(graphName == "minimizeDFA")
         tableView->setWindowTitle("最小化DFA状态转换表");
@@ -122,15 +128,158 @@ void MainWindow::createTable(Graph FA, QStringList titleList, QString graphName)
 
 void MainWindow::on_confirmBtn_clicked()
 {
-    QString re = "a*|b|c";
-    Graph NFA = toNFAGraph(postfixExpressToNFA(postfix(addJoinSymbol(re))));
-    Graph DFA = toDFA(NFA);
-    Graph minimizeDFA = toMinimizeDFA(DFA);
-    QStringList nfaTitleList = getTitle(NFA, "NFA");
-    QStringList dfaTitleList = getTitle(DFA, "DFA");
-    QStringList minimizeDFATitleList = getTitle(minimizeDFA, "minimizeDFA");
+    QString re = ui->regularText->toPlainText();    //拿到正则表达式
+    NFA = Graph();
+    DFA = Graph();
+    minimizeDFA = Graph();
 
-    createTable(NFA, nfaTitleList, "NFA");
-    createTable(DFA, dfaTitleList, "DFA");
-    createTable(minimizeDFA, minimizeDFATitleList, "minimizeDFA");
+    if(!checkLegal(re))
+    {
+        //QErrorMessage *error = new QErrorMessage(this);
+        error *e = new error();
+
+        QImage* img=new QImage;
+        QString fileName = "./images/a.png";
+
+
+        e->getUI()->webLabel->setText(tr("<a href = \"https://www.runoob.com/regexp/regexp-syntax.html\">点击这里，学习正则表达式的书写</a>"));
+        e->getUI()->webLabel->setOpenExternalLinks(true);
+
+        img->load(fileName);    //加载图像
+        e->getUI()->imageLabel->setPixmap(QPixmap::fromImage(*img));
+        e->setWindowTitle("正则表达式都能打错？");
+        e->setWindowModality(Qt::ApplicationModal);
+        e->show();
+    }
+    else
+    {
+        NFA = toNFAGraph(postfixExpressToNFA(postfix(addJoinSymbol(re))));    //生成NFA
+        DFA = toDFA(NFA);   //生成DFA
+        minimizeDFA = toMinimizeDFA(DFA);   //生成最小化DFA
+    }
+}
+
+void MainWindow::on_showNFABtn_clicked()
+{
+    if(NFA.vertexNum != 0)
+    {
+        QStringList nfaTitleList = getTitle(NFA, "NFA");    //NFA表格标题
+        createTable(NFA, nfaTitleList, "NFA");
+    }
+}
+
+void MainWindow::on_showDFABtn_clicked()
+{
+    if(DFA.vertexNum != 0)
+    {
+        QStringList dfaTitleList = getTitle(DFA, "DFA");    //DFA表格标题
+        createTable(DFA, dfaTitleList, "DFA");
+    }
+}
+
+void MainWindow::on_showMiniMizeDFABtn_clicked()
+{
+    if(minimizeDFA.vertexNum != 0)
+    {
+        QStringList minimizeDFATitleList = getTitle(minimizeDFA, "minimizeDFA");    //最小化DFA表格标题
+        createTable(minimizeDFA, minimizeDFATitleList, "minimizeDFA");
+    }
+}
+
+void MainWindow::on_showCodeBtn_clicked()
+{
+    ui->codeText->clear();
+    if(minimizeDFA.vertexNum != 0)
+    {
+        for(auto code: getCode(minimizeDFA))
+        {
+            ui->codeText->append(code);
+        }
+    }
+}
+
+void MainWindow::on_openFileBtn_clicked()
+{
+    //---获取文件名
+    QString fileName = QFileDialog :: getOpenFileName(this, NULL, NULL, "*.txt");
+
+    //---打开文件并读取文件内容
+    QFile file(fileName);
+
+    //--打开文件成功
+    if (file.open(QIODevice ::ReadOnly | QIODevice ::Text))
+    {
+        QTextStream textStream(&file);
+        while (!textStream.atEnd())
+        {
+            ui->regularText->setText(textStream.readLine());
+        }
+    }
+    else	//---打开文件失败
+    {
+        //        QMessageBox ::information(NULL, NULL, "open file error");
+    }
+
+}
+
+void MainWindow::on_saveRegularBtn_clicked()
+{
+    QString re = ui->regularText->toPlainText();
+    if(re.isEmpty())
+    {
+        QMessageBox ::information(NULL, NULL, "没有正则表达式，保存失败！");
+    }
+    else
+    {
+        QString fileName = QFileDialog::getSaveFileName(this, tr("保存当前正则表达式"),
+                                                        "",
+                                                        tr("正则表达式文件(*.txt)"));
+        QFile file(fileName);
+
+        if (!file.open(QIODevice::WriteOnly|QIODevice::Text))
+        {
+            QMessageBox::critical(this, "critical", tr("文件保存失败！"),
+                                  QMessageBox::Yes, QMessageBox::Yes);
+        }
+        else
+        {
+            QTextStream stream(&file);
+
+            stream << re;
+            stream.flush();
+
+            file.close();
+        }
+    }
+}
+
+void MainWindow::on_saveCodeBtn_clicked()
+{
+    QString code = ui->regularText->toPlainText();
+    if(code.isEmpty())
+    {
+        QMessageBox ::information(NULL, NULL, "没有代码，保存失败！");
+    }
+    else
+    {
+        QString fileName = QFileDialog::getSaveFileName(this, tr("保存当前代码"),
+                                                        "",
+                                                        tr("代码文件(*.txt *.c)"));
+        QFile file(fileName);
+
+        if (!file.open(QIODevice::WriteOnly|QIODevice::Text))
+        {
+            QMessageBox::critical(this, "critical", tr("文件保存失败！"),
+                                  QMessageBox::Yes, QMessageBox::Yes);
+        }
+        else
+        {
+            QTextStream stream(&file);
+
+            stream << code;
+            stream.flush();
+
+            file.close();
+        }
+    }
 }
