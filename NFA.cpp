@@ -288,7 +288,7 @@ bool checkString(QString re)
 {
     if(re.isEmpty())
         return false;
-    if(!re.at(0).isLetterOrNumber())
+    if(!re.at(0).isLetterOrNumber() && re[0] != '(')
         return false;
     if(re.at(re.length()-1) == '|')
         return false;
@@ -299,7 +299,10 @@ bool checkString(QString re)
 
             if(re.at(i+1) == '(')
                 continue;
-            if(re.at(i) == ')' && re.at(i+1) == ')')
+            if(re.at(i) == ')')
+                continue;
+
+            if(re[i] == '*' || re[i] == '+')
                 continue;
 
             return false;
